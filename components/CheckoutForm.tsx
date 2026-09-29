@@ -41,7 +41,7 @@ export function CheckoutForm({ planId }: { planId: PlanId }) {
 
   return (
     <form className="checkout-form" onSubmit={submit}>
-      <label>Email для чека и восстановления доступа<input name="email" type="email" autoComplete="email" required /></label>
+      <label>Email для чека — необязательно<input name="email" type="email" autoComplete="email" /></label>
       <label>Telegram или телефон <small>необязательно, для поддержки</small><input name="contact" type="text" autoComplete="tel" /></label>
       <label className="checkout-consent"><input name="accepted" type="checkbox" required /><span>Принимаю <a href="/terms" target="_blank">условия сервиса</a> и <a href="/privacy" target="_blank">политику конфиденциальности</a>.</span></label>
       <button className="cta checkout-submit" type="submit" disabled={loading}>{loading ? "Подготовка…" : "Перейти к оплате"}<span>↗</span></button>

@@ -1,0 +1,7 @@
+export interface VerificationProvider { sendCode(input: { phone: string; code: string; challengeId: string; }): Promise<{ providerRequestId?: string }>; }
+export class MockVerificationProvider implements VerificationProvider { async sendCode({ phone, code, challengeId }: { phone: string; code: string; challengeId: string }) { if (process.env.NODE_ENV === "production") throw new Error("Mock verification provider is forbidden in production"); console.info(`[MOST auth] mock code for ${phone}, challenge ${challengeId}: ${code}`); return { providerRequestId: `mock_${challengeId}` }; } }
+/** Adapter placeholder: add SMS.RU transport here without touching auth flow. */
+export class SmsRuVerificationProvider implements VerificationProvider { async sendCode(): Promise<{ providerRequestId?: string }> { throw new Error("SMS.RU provider is not configured"); } }
+/** Adapter placeholder: add Exolve transport here without touching auth flow. */
+export class ExolveVerificationProvider implements VerificationProvider { async sendCode(): Promise<{ providerRequestId?: string }> { throw new Error("Exolve provider is not configured"); } }
+export function getVerificationProvider(): VerificationProvider { const provider = process.env.VERIFICATION_PROVIDER ?? "mock"; if (provider === "mock") return new MockVerificationProvider(); if (provider === "smsru") return new SmsRuVerificationProvider(); if (provider === "exolve") return new ExolveVerificationProvider(); throw new Error("Unknown verification provider"); }

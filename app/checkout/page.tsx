@@ -2,8 +2,10 @@ import { CheckoutForm } from "@/components/CheckoutForm";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
 import { formatPrice, isPlanId, plans } from "@/lib/plans";
+import { requireSession } from "@/lib/auth/session";
 
 export default async function CheckoutPage({ searchParams }: { searchParams: Promise<{ plan?: string }> }) {
+  await requireSession();
   const { plan: rawPlan } = await searchParams;
   const planId = isPlanId(rawPlan) ? rawPlan : "monthly";
   const plan = plans[planId];

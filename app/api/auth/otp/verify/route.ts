@@ -1,0 +1,4 @@
+import { NextResponse } from "next/server";
+import { verifyCode } from "@/lib/auth/service";
+import { createSession, sessionCookie } from "@/lib/auth/session";
+export async function POST(request: Request) { try { const body = await request.json() as { challengeId?: unknown; code?: unknown }; if (typeof body.challengeId !== "string" || typeof body.code !== "string") throw new Error("Введите код"); const user = await verifyCode(body.challengeId, body.code); const { token } = await createSession(user); const response = NextResponse.json({ ok: true }); const cookie = sessionCookie(token); response.cookies.set(cookie.name, cookie.value, cookie.options); return response; } catch (error) { return NextResponse.json({ error: error instanceof Error ? error.message : "Не удалось проверить код" }, { status: 400 }); } }
