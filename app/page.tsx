@@ -17,7 +17,7 @@ export default function HomePage() {
         </div>
         <RouteField />
         <div className="hero-bottom">
-          <a className="cta" href="#pricing">Подключиться <span>↗</span></a>
+          <a className="cta" href="/pricing">Подключиться <span>↗</span></a>
           <span className="mono hint">БЫСТРО / ПРОСТО / НА ВСЕХ УСТРОЙСТВАХ</span>
         </div>
       </section>
@@ -76,7 +76,7 @@ export default function HomePage() {
       <section className="final-cta section-shell">
         <div className="final-route"><span className="final-dot" /><i /><span className="final-dot active" /></div>
         <h2>Попробуйте<br />на своём устройстве.</h2>
-        <a className="cta huge" href="#pricing">Подключиться <span>↗</span></a>
+        <a className="cta huge" href="/pricing">Подключиться <span>↗</span></a>
       </section>
 
       <Footer />

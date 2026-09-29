@@ -1,0 +1,4 @@
+import Link from "next/link";
+import { AccountHeading } from "@/components/AccountShell";
+const platforms = [["iOS", "ios"], ["Android", "android"], ["Windows", "windows"], ["macOS", "macos"], ["Linux", "linux"]] as const;
+export default function ConnectPage() { return <><AccountHeading title="Подключить устройство." text="Выберите устройство и способ настройки." /><div className="connect-steps"><section><span className="mono">01 / УСТРОЙСТВО</span><div>{platforms.map(([name, slug]) => <Link key={slug} href={`/help/${slug}/happ`}>{name}</Link>)}</div></section><section><span className="mono">02 / СПОСОБ</span><div><Link className="connect-primary" href="/help/ios/happ">Через Happ ↗</Link><Link href="/help/ios/manual">Вручную ↗</Link></div></section><section><span className="mono">03 / ДОСТУП</span><p>После подключения backend вернёт персональную ссылку, deep link, QR или ручную конфигурацию для выбранного устройства.</p></section></div></>; }

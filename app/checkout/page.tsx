@@ -15,7 +15,7 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
         <div className="checkout-copy">
           <span className="mono">ОФОРМЛЕНИЕ</span>
           <h1>Проверьте тариф<br />и оставьте контакт.</h1>
-          <p>После подключения платёжного провайдера здесь откроется его защищённая форма. Данные карты MOST не получает и не хранит.</p>
+          <p>После подключения платёжного провайдера здесь откроется его защищённая форма. Данные карты MOST не получает и не хранит. VPN-доступ появится в личном кабинете сразу после подтверждения оплаты.</p>
         </div>
         <aside className="checkout-card">
           <div className="checkout-plan"><span>{plan.name}</span><strong>{formatPrice(plan.price)} ₽</strong></div>

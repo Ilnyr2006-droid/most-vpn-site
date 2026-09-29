@@ -1,10 +1,11 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useRef, useState } from "react";
 import type { PlanId } from "@/lib/plans";
 
 export function CheckoutForm({ planId }: { planId: PlanId }) {
   const [message, setMessage] = useState("");
+  const orderId = useRef(crypto.randomUUID());
   const [loading, setLoading] = useState(false);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -19,6 +20,7 @@ export function CheckoutForm({ planId }: { planId: PlanId }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           planId,
+          orderId: orderId.current,
           email: form.get("email"),
           contact: form.get("contact"),
           accepted: form.get("accepted") === "on",
@@ -39,7 +41,7 @@ export function CheckoutForm({ planId }: { planId: PlanId }) {
 
   return (
     <form className="checkout-form" onSubmit={submit}>
-      <label>Email для чека и доступа<input name="email" type="email" autoComplete="email" required /></label>
+      <label>Email для чека и восстановления доступа<input name="email" type="email" autoComplete="email" required /></label>
       <label>Telegram или телефон <small>необязательно, для поддержки</small><input name="contact" type="text" autoComplete="tel" /></label>
       <label className="checkout-consent"><input name="accepted" type="checkbox" required /><span>Принимаю <a href="/terms" target="_blank">условия сервиса</a> и <a href="/privacy" target="_blank">политику конфиденциальности</a>.</span></label>
       <button className="cta checkout-submit" type="submit" disabled={loading}>{loading ? "Подготовка…" : "Перейти к оплате"}<span>↗</span></button>

@@ -1,0 +1,4 @@
+import Link from "next/link";
+import { AccountHeading } from "@/components/AccountShell";
+import { mockDevices } from "@/lib/mock-service";
+export default function DevicesPage() { return <><AccountHeading title="Устройства." text="Для каждого устройства создаётся свой доступ." /><div className="account-section-head"><h2>2 из 3 устройств</h2><Link className="cta-small" href="/account/connect">Добавить <span>↗</span></Link></div><div className="devices-table">{mockDevices.map(device => <article key={device.id}><div><strong>{device.name}</strong><small>{device.platform} · добавлено {new Intl.DateTimeFormat("ru-RU").format(new Date(device.addedAt))}</small></div><b><i className="status-dot" /> подключён</b><div className="device-actions"><button>Переименовать</button><button>Отключить</button></div></article>)}</div></>; }

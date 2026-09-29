@@ -1,0 +1,3 @@
+import { AccountHeading } from "@/components/AccountShell";
+import { mockUser } from "@/lib/mock-service";
+export default function TelegramPage() { const connected = Boolean(mockUser.telegramId); return <><AccountHeading title="Telegram." text="Дополнительный способ управления доступом." /><article className="telegram-card"><span className="mono">{connected ? "ПОДКЛЮЧЁН" : "НЕ ПОДКЛЮЧЁН"}</span><h2>{connected ? "@username" : "Подключите Telegram"}</h2><p>Привязка выполняется через одноразовую ссылку. Отдельный аккаунт не создаётся.</p><button className="cta">{connected ? "Отключить" : "Подключить Telegram"}<span>↗</span></button></article></>; }

@@ -1,0 +1,5 @@
+import Link from "next/link";
+import { ReactNode } from "react";
+const links = [["Главная", "/account"], ["Устройства", "/account/devices"], ["Подключить", "/account/connect"], ["Подписка", "/account/subscription"], ["Telegram", "/account/telegram"], ["Настройки", "/account/settings"]] as const;
+export function AccountShell({ children }: { children: ReactNode }) { return <main className="account-shell"><aside className="account-sidebar"><Link className="account-brand" href="/">MOST</Link><nav>{links.map(([label, href]) => <Link key={href} href={href}>{label}</Link>)}</nav><div className="account-sidebar-bottom"><Link href="/help">Помощь</Link><Link href="/">Выйти</Link></div></aside><div className="account-mobile"><Link href="/">MOST</Link><details><summary>Меню</summary>{links.map(([label, href]) => <Link key={href} href={href}>{label}</Link>)}</details></div><section className="account-content">{children}</section></main>; }
+export function AccountHeading({ title, text }: { title: string; text?: string }) { return <header className="account-heading"><span className="mono">ЛИЧНЫЙ КАБИНЕТ</span><h1>{title}</h1>{text && <p>{text}</p>}</header>; }
