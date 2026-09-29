@@ -44,8 +44,8 @@ export default function HomePage() {
       <section className="devices section-shell">
         <div className="devices-head"><h2>Телефон, ноутбук<br />и компьютер.</h2><p>Подключайте несколько устройств. Каждое можно отключить отдельно в любой момент.</p></div>
         <div className="device-list">
-          <div><span>iPhone</span><div className="device-line"><i style={{ width: "72%" }} /></div><b className="mono"><i className="status-dot" /> ПОДКЛЮЧЕН</b></div>
-          <div><span>MacBook</span><div className="device-line"><i style={{ width: "58%" }} /></div><b className="mono"><i className="status-dot" /> ПОДКЛЮЧЕН</b></div>
+          <div><span>iPhone</span><div className="device-line is-connected"><i /></div><b className="mono"><i className="status-dot" /> ПОДКЛЮЧЕН</b></div>
+          <div><span>MacBook</span><div className="device-line is-connected"><i /></div><b className="mono"><i className="status-dot" /> ПОДКЛЮЧЕН</b></div>
           <div><span>Windows</span><div className="device-line muted"><i style={{ width: "21%" }} /></div><b className="mono muted-text">○ НЕ В СЕТИ</b></div>
         </div>
       </section>
