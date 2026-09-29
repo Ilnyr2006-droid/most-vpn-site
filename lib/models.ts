@@ -1,6 +1,6 @@
 export type Platform = "iOS" | "Android" | "Windows" | "macOS" | "Linux";
 export type SubscriptionStatus = "ACTIVE" | "PAST_DUE" | "CANCELED";
-export type ServiceStatus = "ONLINE" | "DEGRADED" | "OFFLINE";
+export type ServiceStatus = "ONLINE" | "DEGRADED" | "OFFLINE" | "NOT_STARTED";
 export interface User { id: string; email: string; telegramId: string | null; }
 export interface Session { id: string; userId: string; expiresAt: string; }
 export interface Subscription { id: string; userId: string; planId: "monthly" | "annual"; status: SubscriptionStatus; endsAt: string; deviceLimit: number; }
