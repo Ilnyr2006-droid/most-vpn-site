@@ -10,7 +10,7 @@ export function PublishServerButton({ id, name, published, ready }: { id: string
   async function update() {
     if (saving || (!published && !ready)) return;
     const next = !published;
-    if (!window.confirm(next ? `Добавить «${name}» в выдачу новых VPN-доступов?` : `Остановить выдачу новых VPN-доступов через «${name}»?`)) return;
+    if (!window.confirm(next ? `Добавить «${name}» в выдачу и синхронизировать действующие устройства?` : `Вывести «${name}» из подписок и начать отзыв доступов?`)) return;
     setSaving(true); setError("");
     try {
       const response = await fetch(`/api/admin/servers/${encodeURIComponent(id)}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ published: next }) });
@@ -20,5 +20,5 @@ export function PublishServerButton({ id, name, published, ready }: { id: string
     } catch (reason) { setError(reason instanceof Error ? reason.message : "Не удалось изменить выдачу"); }
     finally { setSaving(false); }
   }
-  return <div className="admin-publish-server"><button type="button" onClick={update} disabled={saving || (!published && !ready)}>{saving ? "Сохраняем…" : published ? "Остановить выдачу" : "Включить выдачу"}</button>{!published && !ready ? <small>Дождитесь ONLINE и heartbeat</small> : null}{error ? <small className="admin-form-error">{error}</small> : null}</div>;
+  return <div className="admin-publish-server"><button type="button" onClick={update} disabled={saving || (!published && !ready)}>{saving ? "Сохраняем…" : published ? "Вывести из подписок" : "Включить выдачу"}</button>{!published && !ready ? <small>Дождитесь ONLINE и heartbeat</small> : null}{error ? <small className="admin-form-error">{error}</small> : null}</div>;
 }

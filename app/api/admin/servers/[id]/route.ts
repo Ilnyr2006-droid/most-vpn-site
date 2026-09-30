@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/admin/session";
 import { deleteRegisteredVpnNode, setRegisteredVpnNodePublished } from "@/lib/vpn-nodes/repository";
+import { queueNodeDrainRevocations, syncPublishedNodeClients } from "@/lib/provisioning/service";
 
 const nodeIdPattern = /^vpn_[0-9a-f-]{36}$/i;
 
@@ -13,6 +14,7 @@ export async function DELETE(_request: Request, context: { params: Promise<{ id:
   const result = await deleteRegisteredVpnNode(id);
   if (result === "missing") return NextResponse.json({ error: "Сервер не найден" }, { status: 404 });
   if (result === "published") return NextResponse.json({ error: "Сначала выведите сервер из подписок" }, { status: 409 });
+  if (result === "credentials") return NextResponse.json({ error: "Нода ещё отзывает доступы устройств. Дождитесь завершения команд." }, { status: 409 });
   return NextResponse.json({ ok: true });
 }
 
@@ -26,5 +28,6 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   const result = await setRegisteredVpnNodePublished(id, body.published);
   if (result === "missing") return NextResponse.json({ error: "Сервер не найден" }, { status: 404 });
   if (result === "unavailable") return NextResponse.json({ error: "Нода должна быть ONLINE и передать VPN-входы" }, { status: 409 });
-  return NextResponse.json({ ok: true, published: body.published });
+  const queued = body.published ? await syncPublishedNodeClients(id) : await queueNodeDrainRevocations(id);
+  return NextResponse.json({ ok: true, published: body.published, queued });
 }

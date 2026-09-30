@@ -169,7 +169,7 @@ export async function createRegisteredVpnNode(input: { name: string; countryCode
   return { node: mapNode(result.rows[0]), enrollmentToken };
 }
 
-export async function deleteRegisteredVpnNode(id: string): Promise<"deleted" | "missing" | "published"> {
+export async function deleteRegisteredVpnNode(id: string): Promise<"deleted" | "missing" | "published" | "credentials"> {
   if (!hasDatabase()) {
     if (process.env.NODE_ENV === "production") throw new Error("DATABASE_URL is required for VPN nodes in production");
     return mutateLocal((nodes) => {
@@ -182,6 +182,8 @@ export async function deleteRegisteredVpnNode(id: string): Promise<"deleted" | "
   }
 
   const pool = getPostgresPool();
+  const credentials = await pool.query("SELECT 1 FROM device_access_credentials WHERE node_id=$1 AND revoked_at IS NULL LIMIT 1", [id]);
+  if (credentials.rowCount) return "credentials";
   const removed = await pool.query("DELETE FROM vpn_nodes WHERE id = $1 AND published = FALSE RETURNING id", [id]);
   if (removed.rowCount) return "deleted";
 
@@ -195,15 +197,17 @@ export async function setRegisteredVpnNodePublished(id: string, published: boole
     return mutateLocal((nodes) => {
       const node = nodes.find((candidate) => candidate.id === id);
       if (!node) return "missing";
-      if (published && (node.status !== "ONLINE" || node.endpoints.length === 0)) return "unavailable";
+      if (published && ((node.status !== "ONLINE" && node.status !== "DRAINING") || node.endpoints.length === 0)) return "unavailable";
       node.published = published;
+      if (published && node.status === "DRAINING") node.status = "ONLINE";
+      if (!published && node.status === "ONLINE") node.status = "DRAINING";
       return "updated";
     });
   }
 
   const pool = getPostgresPool();
   const result = await pool.query(
-    "UPDATE vpn_nodes SET published=$2 WHERE id=$1 AND ($2=FALSE OR (status='ONLINE' AND jsonb_array_length(endpoint_snapshot)>0)) RETURNING id",
+    "UPDATE vpn_nodes SET published=$2, status=CASE WHEN $2=FALSE AND status='ONLINE' THEN 'DRAINING' WHEN $2=TRUE AND status='DRAINING' THEN 'ONLINE' ELSE status END WHERE id=$1 AND ($2=FALSE OR (status IN ('ONLINE','DRAINING') AND jsonb_array_length(endpoint_snapshot)>0)) RETURNING id",
     [id, published],
   );
   if (result.rowCount) return "updated";
@@ -256,14 +260,15 @@ export async function recordVpnNodeHeartbeat(agentToken: string, report: VpnNode
       found.agentVersion = report.agentVersion;
       found.lastSeenAt = now;
       found.endpoints = report.endpoints;
-      found.status = status;
+      if (found.status !== "DRAINING") found.status = status;
       return publicLocal(found);
     });
   }
 
   const result = await getPostgresPool().query(
     `UPDATE vpn_nodes
-       SET agent_version = $2, last_seen_at = NOW(), endpoint_snapshot = $3::jsonb, status = $4
+       SET agent_version = $2, last_seen_at = NOW(), endpoint_snapshot = $3::jsonb,
+           status = CASE WHEN status='DRAINING' THEN 'DRAINING' ELSE $4 END
      WHERE agent_token_hash = $1
      RETURNING id, name, country_code, domain, status, published, agent_version, last_seen_at, endpoint_snapshot, enrollment_expires_at, created_at`,
     [agentTokenHash, report.agentVersion, JSON.stringify(report.endpoints), status],
