@@ -30,6 +30,8 @@ npm run dev
 4. Указать оператора сервиса и контакты в юридических документах.
 5. Добавить рабочий канал поддержки и реальные ссылки на приложения.
 6. Подключить страницу статуса к health API.
+7. Запустить `npm run db:migrate`, задать `CREDENTIAL_ENCRYPTION_KEY` и `PROVISIONING_CRON_SECRET`.
+8. Вызывать `POST /api/internal/provisioning/reconcile` с `Authorization: Bearer $PROVISIONING_CRON_SECRET` каждые 1–5 минут: он ставит отзыв просроченных VPN-доступов в очередь нод.
 
 ## Локальный тестовый пользователь
 

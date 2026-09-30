@@ -85,6 +85,68 @@ curl --fail --silent --show-error \
   -H 'Content-Type: application/json' \
   --data "${payload}" \
   "${MOST_CONTROL_URL}/api/node/heartbeat" >/dev/null
+
+command_response="$(curl --fail --silent --show-error \
+  -H "Authorization: Bearer ${MOST_AGENT_TOKEN}" \
+  "${MOST_CONTROL_URL}/api/node/commands")"
+command_id="$(jq -r '.command.id // empty' <<<"${command_response}")"
+[[ -n "${command_id}" ]] || exit 0
+command_kind="$(jq -r '.command.kind // empty' <<<"${command_response}")"
+client_id="$(jq -r '.command.clientId // empty' <<<"${command_response}")"
+client_email="$(jq -r '.command.email // empty' <<<"${command_response}")"
+
+if [[ ! "${command_id}" =~ ^cmd_[0-9a-fA-F-]{36}$ ]] || [[ ! "${client_id}" =~ ^[0-9a-fA-F-]{36}$ ]] || [[ ! "${client_email}" =~ ^[A-Za-z0-9._-]{1,120}$ ]]; then
+  exit 1
+fi
+
+candidate_config="$(mktemp)"
+cleanup() { rm -f "${candidate_config}"; }
+trap cleanup EXIT
+
+case "${command_kind}" in
+  PROVISION)
+    jq --arg clientId "${client_id}" --arg email "${client_email}" '
+      .inbounds |= map(
+        if .protocol == "vless" and .streamSettings.security == "reality" then
+          .settings.clients = ((.settings.clients // []) |
+            if any(.[]; .id == $clientId) then .
+            else . + [{id:$clientId,email:$email,flow:(.[0].flow // "")}]
+            end)
+        else . end
+      )' "${xray_config}" > "${candidate_config}"
+    ;;
+  REVOKE)
+    jq --arg clientId "${client_id}" '
+      .inbounds |= map(
+        if .protocol == "vless" and .streamSettings.security == "reality" then
+          .settings.clients = ((.settings.clients // []) | map(select(.id != $clientId)))
+        else . end
+      )' "${xray_config}" > "${candidate_config}"
+    ;;
+  *)
+    exit 1
+    ;;
+esac
+
+result_error=""
+if ! "${xray_binary}" run -test -config "${candidate_config}" >/dev/null 2>&1; then
+  result_error="Xray rejected the updated configuration"
+elif ! install -m 0600 "${candidate_config}" "${xray_config}"; then
+  result_error="Could not install the updated configuration"
+elif ! systemctl reload xray 2>/dev/null && ! systemctl restart xray; then
+  result_error="Xray could not reload the updated configuration"
+fi
+
+if [[ -z "${result_error}" ]]; then
+  result_payload='{"success":true}'
+else
+  result_payload="$(jq -n --arg error "${result_error}" '{success:false,error:$error}')"
+fi
+curl --fail --silent --show-error \
+  -H "Authorization: Bearer ${MOST_AGENT_TOKEN}" \
+  -H 'Content-Type: application/json' \
+  --data "${result_payload}" \
+  "${MOST_CONTROL_URL}/api/node/commands/${command_id}" >/dev/null
 MOST_AGENT
 
 install -m 0644 /dev/stdin /etc/systemd/system/most-node-agent.service <<'MOST_SERVICE'
