@@ -53,6 +53,13 @@ export const postgresAuthStore: AuthRepository & SessionRepository & Verificatio
     const r = await getPostgresPool().query("SELECT * FROM auth_users WHERE id=$1 LIMIT 1", [id]);
     return r.rows[0] ? user(r.rows[0]) : null;
   },
+  async listUsers(limit) {
+    const r = await getPostgresPool().query(
+      "SELECT * FROM auth_users ORDER BY created_at DESC LIMIT $1",
+      [limit]
+    );
+    return r.rows.map(user);
+  },
   async createUser(phone) {
     const r = await getPostgresPool().query(
       "INSERT INTO auth_users(id,phone,phone_verified_at,created_at) VALUES($1,$2,NOW(),NOW()) ON CONFLICT(phone) DO UPDATE SET phone=EXCLUDED.phone RETURNING *",
