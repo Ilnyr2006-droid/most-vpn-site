@@ -11,6 +11,15 @@ export type VpnNodeStatus = {
   security: string;
 };
 
+export type VpnNodeMetrics = {
+  cpuPercent: number;
+  ramPercent: number;
+  diskPercent: number;
+  rxMbps: number;
+  txMbps: number;
+  uptimeSeconds: number;
+};
+
 export class DevProvisioningError extends Error {}
 
 function getConfiguration() {
@@ -33,7 +42,7 @@ function getConfiguration() {
   return { host, privateKeyPath, knownHostsPath };
 }
 
-async function runStatusCommand() {
+async function runCommand(command: "status" | "metrics") {
   const { host, privateKeyPath, knownHostsPath } = getConfiguration();
 
   try {
@@ -53,7 +62,7 @@ async function runStatusCommand() {
         `UserKnownHostsFile=${knownHostsPath}`,
         host,
         REMOTE_PROVISIONER,
-        "status",
+        command,
       ],
       { timeout: 15_000, maxBuffer: 16 * 1024 },
     );
@@ -63,7 +72,7 @@ async function runStatusCommand() {
 }
 
 export async function getDevVpnNodeStatus(): Promise<VpnNodeStatus[]> {
-  const { stdout } = await runStatusCommand();
+  const { stdout } = await runCommand("status");
   const lines = stdout.trim().split("\n").filter(Boolean);
 
   if (lines.length === 0) {
@@ -83,4 +92,23 @@ export async function getDevVpnNodeStatus(): Promise<VpnNodeStatus[]> {
 
     return { port, clients: Number(match[2]), security: match[3] };
   });
+}
+
+export async function getDevVpnNodeMetrics(): Promise<VpnNodeMetrics> {
+  const { stdout } = await runCommand("metrics");
+  const match = /^cpuPercent=(\d+(?:\.\d+)?) ramPercent=(\d+(?:\.\d+)?) diskPercent=(\d+(?:\.\d+)?) rxMbps=(\d+(?:\.\d+)?) txMbps=(\d+(?:\.\d+)?) uptimeSeconds=(\d+)$/.exec(stdout.trim());
+
+  if (!match) {
+    throw new DevProvisioningError("Development VPN node returned invalid metrics.");
+  }
+
+  const [cpuPercent, ramPercent, diskPercent, rxMbps, txMbps, uptimeSeconds] = match.slice(1).map(Number);
+  if (
+    [cpuPercent, ramPercent, diskPercent, rxMbps, txMbps, uptimeSeconds].some((value) => !Number.isFinite(value) || value < 0) ||
+    cpuPercent > 100 || ramPercent > 100 || diskPercent > 100
+  ) {
+    throw new DevProvisioningError("Development VPN node returned invalid metrics.");
+  }
+
+  return { cpuPercent, ramPercent, diskPercent, rxMbps, txMbps, uptimeSeconds };
 }

@@ -1,5 +1,5 @@
 import { authStore } from "@/lib/auth/repository";
-import { getDevVpnNodeStatus, type VpnNodeStatus } from "@/lib/provisioning/dev-ssh";
+import { getDevVpnNodeMetrics, getDevVpnNodeStatus, type VpnNodeMetrics, type VpnNodeStatus } from "@/lib/provisioning/dev-ssh";
 import { listConversations } from "@/lib/support/repository";
 
 export type AdminClient = {
@@ -46,15 +46,17 @@ export type AdminData = {
   openConversations: number;
   nodes: AdminNode[];
   nodeStatusAvailable: boolean;
+  metrics: VpnNodeMetrics | null;
 };
 
 export async function getAdminData(): Promise<AdminData> {
-  const [users, conversations, nodeResult] = await Promise.all([
+  const [users, conversations, nodeResult, metrics] = await Promise.all([
     authStore.listUsers(100),
     listConversations(),
     getDevVpnNodeStatus()
       .then((nodes) => ({ nodes, available: true }))
       .catch(() => ({ nodes: [] as VpnNodeStatus[], available: false })),
+    getDevVpnNodeMetrics().catch(() => null),
   ]);
 
   return {
@@ -72,5 +74,6 @@ export async function getAdminData(): Promise<AdminData> {
       ...connectionDetails(node.port),
     })),
     nodeStatusAvailable: nodeResult.available,
+    metrics,
   };
 }
