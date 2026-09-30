@@ -1,5 +1,5 @@
 import { SiteHeader } from "@/components/SiteHeader";
-import { MostHeroScene } from "@/components/MostHeroScene";
+import { MostHeroVideo } from "@/components/MostHeroVideo";
 import { NetworkMap } from "@/components/NetworkMap";
 import { FAQ } from "@/components/FAQ";
 import { Footer } from "@/components/Footer";
@@ -15,7 +15,7 @@ export default function HomePage() {
           <h1>VPN без<br /><span>лишних настроек.</span></h1>
           <p className="hero-copy">Установите приложение, добавьте доступ и подключайтесь. Сервер подберём автоматически.</p>
         </div>
-        <MostHeroScene />
+        <MostHeroVideo />
         <div className="hero-bottom">
           <a className="cta" href="/pricing">Подключиться <span>↗</span></a>
           <span className="mono hint">БЫСТРО / ПРОСТО / НА ВСЕХ УСТРОЙСТВАХ</span>
