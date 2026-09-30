@@ -10,8 +10,8 @@ export async function DELETE(_request: Request, context: { params: Promise<{ id:
   const { id } = await context.params;
   if (!deviceIdPattern.test(id)) return NextResponse.json({ error: "Некорректное устройство" }, { status: 400 });
   try {
-    await requestDeviceRevoke(current.user.id, id);
-    return NextResponse.json({ ok: true, status: "REVOKE_PENDING" }, { status: 202, headers: { "Cache-Control": "no-store" } });
+    const result = await requestDeviceRevoke(current.user.id, id);
+    return NextResponse.json({ ok: true, status: "REVOKE_PENDING", ...result }, { status: 202, headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     if (error instanceof ProvisioningError) return NextResponse.json({ error: error.message }, { status: 409 });
     throw error;

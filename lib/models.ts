@@ -8,8 +8,9 @@ export interface AuthSession { session: Session; user: User; }
 export interface VerificationChallenge { id: string; phone: string; codeHash: string; channel: VerificationChannel; expiresAt: string; attempts: number; maxAttempts: number; lastSentAt: string; usedAt: string | null; providerRequestId: string | null; createdAt: string; }
 export interface Subscription { id: string; userId: string; planId: "monthly" | "annual"; status: SubscriptionStatus; endsAt: string; deviceLimit: number; }
 export interface Payment { id: string; orderId: string; amount: number; status: "PENDING" | "SUCCEEDED" | "FAILED"; providerPaymentId: string | null; }
-export interface Device { id: string; userId: string; name: string; platform: Platform; status: "CONNECTED" | "DISCONNECTED"; addedAt: string; }
-export interface Ikev2Credential { server: string; remoteId: string; localId: string; username: string; password: string; }
+export type DeviceStatus = "PENDING" | "CONNECTED" | "REVOKE_PENDING" | "DISCONNECTED" | "ERROR";
+export interface Device { id: string; userId: string; name: string; platform: Platform; status: DeviceStatus; addedAt: string; }
+export interface Ikev2Credential { server: string; remoteId: string; localId: string; username: string; password: string; sharedSecret: string; }
 export interface AccessCredential { id: string; deviceId: string; subscriptionUrl: string; deepLink: string; manualConfig: string; qrValue: string; ikev2: Ikev2Credential; }
 export interface TelegramLink { id: string; userId: string; token: string; expiresAt: string; telegramId: string | null; }
 export interface Order { id: string; userId: string | null; planId: "monthly" | "annual"; amount: number; idempotencyKey: string; status: "DRAFT" | "PENDING_PAYMENT" | "PAID"; }
