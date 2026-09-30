@@ -15,7 +15,7 @@ export default async function AdminServersPage() {
         {!nodeStatusAvailable && <p>Проверьте локальный защищённый bridge и SSH-доступ к ноде.</p>}
         <footer><span className="mono">READ-ONLY STATUS · ONE NODE</span></footer>
       </article>
-      {registeredNodes.map((node) => <article className="admin-server-card" key={node.id}><header><div><span className="mono">MANUAL NODE</span><h2>{node.name}</h2><p>VPN ещё не подключён</p></div><b className="admin-status">SETUP REQUIRED</b></header><dl className="admin-server-details"><div><dt>Статус</dt><dd>Требуется настройка</dd></div><div><dt>Подписки</dt><dd>Не подключены</dd></div></dl><footer><span className="mono">СМОТРИТЕ ИНСТРУКЦИЮ В «ДОБАВИТЬ СЕРВЕР»</span></footer></article>)}
+      {registeredNodes.map((node) => <article className="admin-server-card" key={node.id}><header><div><span className="mono">{node.countryCode} / MANAGED NODE</span><h2>{node.name}</h2><p>{node.domain || "Домен не задан"}</p></div><b className={node.status === "ONLINE" ? "admin-status is-online" : "admin-status"}><i /> {node.status}</b></header><dl className="admin-server-details"><div><dt>Агент</dt><dd>{node.agentVersion ? `v${node.agentVersion}` : "Не подключён"}</dd></div><div><dt>Последняя связь</dt><dd>{node.lastSeenAt ? new Date(node.lastSeenAt).toLocaleString("ru-RU") : "—"}</dd></div><div><dt>VPN-входы</dt><dd>{node.endpoints.length}</dd></div><div><dt>Подписки</dt><dd>{node.published ? "Опубликован" : "Не опубликован"}</dd></div></dl><footer><span className="mono">{node.status === "SETUP_REQUIRED" ? "ВЫПОЛНИТЕ ОДНОРАЗОВУЮ КОМАНДУ ПОДКЛЮЧЕНИЯ" : "ПРИВАТНЫЙ КЛЮЧ REALITY ХРАНИТСЯ ТОЛЬКО НА НОДЕ"}</span></footer></article>)}
     </section>
   </>;
 }
