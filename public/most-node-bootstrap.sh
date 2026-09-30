@@ -1,12 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-: "${MOST_CONTROL_URL:?MOST_CONTROL_URL is required}"
-: "${MOST_ENROLL_TOKEN:?MOST_ENROLL_TOKEN is required}"
-
 if [[ "${EUID}" -ne 0 ]]; then
   printf 'Run this script as root.\n' >&2
   exit 1
+fi
+
+if [[ -f /etc/most-vpn/agent.env ]]; then
+  source /etc/most-vpn/agent.env
+  agent_token="${MOST_AGENT_TOKEN:?MOST_AGENT_TOKEN is required in /etc/most-vpn/agent.env}"
+else
+  : "${MOST_CONTROL_URL:?MOST_CONTROL_URL is required}"
+  : "${MOST_ENROLL_TOKEN:?MOST_ENROLL_TOKEN is required}"
+  agent_token=""
 fi
 
 if [[ ! "${MOST_CONTROL_URL}" =~ ^https:// ]] && [[ ! "${MOST_CONTROL_URL}" =~ ^http://(localhost|127\.0\.0\.1)(:[0-9]+)?$ ]]; then
@@ -26,17 +32,18 @@ fi
 
 "${xray_binary}" run -test -config "${xray_config}"
 
-enroll_payload="$(jq -n --arg token "${MOST_ENROLL_TOKEN}" --arg hostname "$(hostname -f 2>/dev/null || hostname)" '{token:$token,hostname:$hostname,agentVersion:"1"}')"
-enroll_response="$(curl --fail --silent --show-error \
-  -H 'Content-Type: application/json' \
-  --data "${enroll_payload}" \
-  "${MOST_CONTROL_URL}/api/node/enroll")"
-agent_token="$(jq -er '.agentToken' <<<"${enroll_response}")"
-
-install -d -m 0750 /etc/most-vpn
-umask 077
-printf 'MOST_CONTROL_URL=%s\nMOST_AGENT_TOKEN=%s\n' "${MOST_CONTROL_URL}" "${agent_token}" > /etc/most-vpn/agent.env
-chmod 0600 /etc/most-vpn/agent.env
+if [[ -z "${agent_token}" ]]; then
+  enroll_payload="$(jq -n --arg token "${MOST_ENROLL_TOKEN}" --arg hostname "$(hostname -f 2>/dev/null || hostname)" '{token:$token,hostname:$hostname,agentVersion:"1"}')"
+  enroll_response="$(curl --fail --silent --show-error \
+    -H 'Content-Type: application/json' \
+    --data "${enroll_payload}" \
+    "${MOST_CONTROL_URL}/api/node/enroll")"
+  agent_token="$(jq -er '.agentToken' <<<"${enroll_response}")"
+  install -d -m 0750 /etc/most-vpn
+  umask 077
+  printf 'MOST_CONTROL_URL=%s\nMOST_AGENT_TOKEN=%s\n' "${MOST_CONTROL_URL}" "${agent_token}" > /etc/most-vpn/agent.env
+  chmod 0600 /etc/most-vpn/agent.env
+fi
 
 install -m 0750 /dev/stdin /usr/local/sbin/most-node-agent <<'MOST_AGENT'
 #!/usr/bin/env bash
