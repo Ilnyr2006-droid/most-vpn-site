@@ -9,6 +9,11 @@ const dataFile = path.join(dataDir, "vpn-nodes.json");
 const enrollmentLifetimeMs = 30 * 60_000;
 let localMutation = Promise.resolve();
 
+function staleAfterMs() {
+  const seconds = Number(process.env.VPN_HEARTBEAT_STALE_SECONDS ?? "150");
+  return (Number.isFinite(seconds) && seconds >= 60 && seconds <= 900 ? seconds : 150) * 1_000;
+}
+
 type StoredVpnNode = RegisteredVpnNode & {
   enrollmentTokenHash: string | null;
   agentTokenHash: string | null;
@@ -118,6 +123,7 @@ function publicLocal(node: StoredVpnNode): RegisteredVpnNode {
 }
 
 export async function listRegisteredVpnNodes(): Promise<RegisteredVpnNode[]> {
+  await reconcileStaleVpnNodes();
   if (!hasDatabase()) {
     if (process.env.NODE_ENV === "production") throw new Error("DATABASE_URL is required for VPN nodes in production");
     return (await readLocal()).map(publicLocal).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
@@ -127,6 +133,29 @@ export async function listRegisteredVpnNodes(): Promise<RegisteredVpnNode[]> {
     "SELECT id, name, country_code, domain, status, published, agent_version, last_seen_at, endpoint_snapshot, enrollment_expires_at, created_at FROM vpn_nodes ORDER BY created_at DESC",
   );
   return result.rows.map(mapNode);
+}
+
+/** Persist OFFLINE when an enrolled node stopped reporting. A later healthy heartbeat restores ONLINE. */
+export async function reconcileStaleVpnNodes() {
+  const cutoff = new Date(Date.now() - staleAfterMs());
+  if (!hasDatabase()) {
+    if (process.env.NODE_ENV === "production") throw new Error("DATABASE_URL is required for VPN nodes in production");
+    return mutateLocal((nodes) => {
+      let changed = 0;
+      for (const node of nodes) {
+        if ((node.status === "ONLINE" || node.status === "DEGRADED") && (!node.lastSeenAt || new Date(node.lastSeenAt) < cutoff)) {
+          node.status = "OFFLINE";
+          changed += 1;
+        }
+      }
+      return changed;
+    });
+  }
+  const result = await getPostgresPool().query(
+    "UPDATE vpn_nodes SET status='OFFLINE' WHERE status IN ('ONLINE','DEGRADED') AND (last_seen_at IS NULL OR last_seen_at < $1)",
+    [cutoff],
+  );
+  return result.rowCount ?? 0;
 }
 
 export async function createRegisteredVpnNode(input: { name: string; countryCode: string; domain: string }) {

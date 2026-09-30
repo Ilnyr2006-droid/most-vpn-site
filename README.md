@@ -32,6 +32,8 @@ npm run dev
 6. Подключить страницу статуса к health API.
 7. Запустить `npm run db:migrate`, задать `CREDENTIAL_ENCRYPTION_KEY` и `PROVISIONING_CRON_SECRET`.
 8. Вызывать `POST /api/internal/provisioning/reconcile` с `Authorization: Bearer $PROVISIONING_CRON_SECRET` каждые 1–5 минут: он ставит отзыв просроченных VPN-доступов в очередь нод.
+9. Применить мониторинговую миграцию и вызывать `POST /api/internal/monitoring/reconcile` с `Authorization: Bearer $MONITORING_CRON_SECRET` каждые 1–5 минут. Он помечает просроченные heartbeat нод как `OFFLINE` и отправляет переходы VPN/БД в `MONITORING_ALERT_WEBHOOK_URL`.
+10. Для проверки недоступности самого сайта запустить `scripts/monitor-most.mjs` по cron на отдельной машине (не на хосте сайта), задав `MOST_MONITOR_SITE_URL`, `MONITORING_ALERT_WEBHOOK_URL` и `MOST_MONITOR_STATE_FILE`. Скрипт проверяет `/api/health` и отправляет только уведомление о падении и восстановлении.
 
 ## Локальный тестовый пользователь
 
