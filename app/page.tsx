@@ -64,8 +64,11 @@ export default function HomePage() {
       </section>
 
       <section className="pricing section-shell" id="pricing">
-        <div className="pricing-head"><h2>Простые тарифы.</h2><p>Без десятка пакетов. Выберите срок подписки — возможности одинаковые.</p></div>
-        <PricingCards />
+        <video className="pricing-video" autoPlay muted loop playsInline preload="metadata" aria-hidden="true"><source src="/most-pricing.webm" type="video/webm" /></video>
+        <div className="pricing-content">
+          <div className="pricing-head"><h2>Простые тарифы.</h2><p>Без десятка пакетов. Выберите срок подписки — возможности одинаковые.</p></div>
+          <PricingCards />
+        </div>
       </section>
 
       <section className="faq section-shell">
