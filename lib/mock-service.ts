@@ -7,7 +7,7 @@ export const mockDevices: Device[] = [
   { id: "dev_macbook", userId: mockUser.id, name: "MacBook Air", platform: "macOS", status: "CONNECTED", addedAt: "2026-09-04" },
 ];
 export function getMockCredential(deviceId = "new-device"): AccessCredential {
-  return { id: `cred_${deviceId}`, deviceId, subscriptionUrl: "https://access.most.example/subscription/mock", deepLink: "happ://import?url=https%3A%2F%2Faccess.most.example%2Fsubscription%2Fmock", manualConfig: "vless://mock-access-configuration", qrValue: "MOST:mock-access" };
+  return { id: `cred_${deviceId}`, deviceId, subscriptionUrl: "https://access.most.example/subscription/mock", deepLink: "happ://import?url=https%3A%2F%2Faccess.most.example%2Fsubscription%2Fmock", manualConfig: "vless://mock-access-configuration", qrValue: "MOST:mock-access", ikev2: { server: "vpn-de.most.example", remoteId: "vpn-de.most.example", localId: "", username: "most-demo-user", password: "demo-password" } };
 }
 export function createDraftOrder(planId: Order["planId"], amount: number, orderId?: string, userId: string | null = null): Order {
   const id = orderId ? `ord_${orderId}` : `ord_${crypto.randomUUID()}`;
