@@ -169,6 +169,26 @@ export async function createRegisteredVpnNode(input: { name: string; countryCode
   return { node: mapNode(result.rows[0]), enrollmentToken };
 }
 
+export async function deleteRegisteredVpnNode(id: string): Promise<"deleted" | "missing" | "published"> {
+  if (!hasDatabase()) {
+    if (process.env.NODE_ENV === "production") throw new Error("DATABASE_URL is required for VPN nodes in production");
+    return mutateLocal((nodes) => {
+      const index = nodes.findIndex((node) => node.id === id);
+      if (index === -1) return "missing";
+      if (nodes[index].published) return "published";
+      nodes.splice(index, 1);
+      return "deleted";
+    });
+  }
+
+  const pool = getPostgresPool();
+  const removed = await pool.query("DELETE FROM vpn_nodes WHERE id = $1 AND published = FALSE RETURNING id", [id]);
+  if (removed.rowCount) return "deleted";
+
+  const existing = await pool.query("SELECT published FROM vpn_nodes WHERE id = $1", [id]);
+  return existing.rowCount && existing.rows[0].published ? "published" : "missing";
+}
+
 export async function enrollVpnNode(enrollmentToken: string) {
   const enrollmentTokenHash = tokenHash(enrollmentToken);
   const agentToken = randomBytes(32).toString("base64url");
