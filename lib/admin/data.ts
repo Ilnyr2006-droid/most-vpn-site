@@ -12,7 +12,34 @@ export type AdminClient = {
 export type AdminNode = VpnNodeStatus & {
   id: string;
   status: "ONLINE" | "OFFLINE";
+  role: "Основной" | "Резервный" | "Дополнительный";
+  protocol: string;
+  note: string;
 };
+
+function connectionDetails(port: number) {
+  if (port === 9443) {
+    return {
+      role: "Основной" as const,
+      protocol: "VLESS + Reality + TCP + XTLS-Vision",
+      note: "Используется по умолчанию: обычно даёт меньшую задержку.",
+    };
+  }
+
+  if (port === 9444) {
+    return {
+      role: "Резервный" as const,
+      protocol: "VLESS + Reality + XHTTP",
+      note: "Используется, если основной вариант недоступен или нестабилен.",
+    };
+  }
+
+  return {
+    role: "Дополнительный" as const,
+    protocol: `Reality / ${port}`,
+    note: "Дополнительный вариант подключения.",
+  };
+}
 
 export type AdminData = {
   clients: AdminClient[];
@@ -42,6 +69,7 @@ export async function getAdminData(): Promise<AdminData> {
       ...node,
       id: `reality-${node.port}`,
       status: "ONLINE",
+      ...connectionDetails(node.port),
     })),
     nodeStatusAvailable: nodeResult.available,
   };

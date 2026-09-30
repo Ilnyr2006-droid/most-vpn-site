@@ -16,7 +16,7 @@ export default async function AdminPage() {
 
     <section className="admin-stats-grid">
       <Stat label="КЛИЕНТЫ" value={String(data.clients.length)} note="зарегистрировано" />
-      <Stat label="VPN-ВХОДЫ" value={String(data.nodes.length)} note={data.nodeStatusAvailable ? "доступно по SSH" : "телеметрия недоступна"} />
+      <Stat label="VPN-СЕРВЕРЫ" value={data.nodeStatusAvailable ? "1" : "0"} note={data.nodeStatusAvailable ? `${data.nodes.length} варианта подключения` : "телеметрия недоступна"} />
       <Stat label="VPN-КЛИЕНТЫ" value={String(connectedClients)} note="записей на входах" />
       <Stat label="ОБРАЩЕНИЯ" value={String(data.openConversations)} note="ожидают ответа" />
     </section>
@@ -31,7 +31,7 @@ export default async function AdminPage() {
     </section>
 
     <section className="admin-panel admin-server-overview"><header><div><span className="mono">INFRASTRUCTURE</span><h2>Серверы</h2></div><Link href="/admin/servers">Все серверы ↗</Link></header>
-      <div className="admin-server-list">{data.nodes.map((server) => <div key={server.id}><div className="admin-server-name"><i /><strong>REALITY / {server.port}</strong><small>{server.security}</small></div><div><span>CPU</span><strong>—</strong></div><div><span>RAM</span><strong>—</strong></div><div><span>CLIENTS</span><strong>{server.clients}</strong></div><div><span>PING</span><strong>—</strong></div><b>ONLINE</b></div>)}{!data.nodes.length && <p>Статус VPN-ноды пока недоступен.</p>}</div>
+      <div className="admin-server-list">{data.nodeStatusAvailable ? <div><div className="admin-server-name"><i /><strong>VPN-нода</strong><small>{data.nodes.length} варианта подключения</small></div><div><span>CPU</span><strong>—</strong></div><div><span>RAM</span><strong>—</strong></div><div><span>PROFILES</span><strong>{connectedClients}</strong></div><div><span>TRAFFIC</span><strong>—</strong></div><b>ONLINE</b></div> : <p>Статус VPN-ноды пока недоступен.</p>}</div>
     </section>
 
     <section className="admin-panel admin-recent-payments"><header><div><span className="mono">BILLING</span><h2>Последние платежи</h2></div><Link href="/admin/payments">Все платежи ↗</Link></header><p>Нет подтверждённых платежей: интеграция с платёжным провайдером ещё не настроена.</p></section>
